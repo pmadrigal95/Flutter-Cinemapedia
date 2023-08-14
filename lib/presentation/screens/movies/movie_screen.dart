@@ -5,6 +5,7 @@ import 'package:cinemapedia/config/domain/entities/movie.dart';
 import 'package:cinemapedia/config/domain/entities/actor.dart';
 import 'package:cinemapedia/presentation/providers/providers.dart';
 import 'package:cinemapedia/presentation/widgets/widgets.dart';
+import 'package:cinemapedia/presentation/providers/movies/movies_from_movie_provider.dart';
 
 class MovieScreen extends ConsumerStatefulWidget {
   static const name = 'movie_screen';
@@ -25,6 +26,12 @@ class MovieScreenState extends ConsumerState<MovieScreen> {
     ref.read(movieInfoProvider.notifier).loadMovie(widget.movieId);
 
     ref.read(actorsByMovieProvider.notifier).loadActors(widget.movieId);
+
+    ref
+        .read(recommendationsMoviesProvider.notifier)
+        .loadNextPage(widget.movieId);
+
+    ref.read(similarMoviesProvider.notifier).loadNextPage(widget.movieId);
   }
 
   @override
@@ -123,6 +130,9 @@ class _MovieDetails extends StatelessWidget {
           ),
         ),
         _ActorsByMovieId(
+          movieId: movie.id.toString(),
+        ),
+        _MovieList(
           movieId: movie.id.toString(),
         ),
         const SizedBox(
@@ -283,6 +293,49 @@ class _ActorsByMovieId extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _MovieList extends ConsumerWidget {
+  final String movieId;
+
+  const _MovieList({required this.movieId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final List<Movie>? recommendationsMovies =
+        ref.watch(recommendationsMoviesProvider)[movieId];
+
+    final List<Movie>? similarMovies = ref.watch(similarMoviesProvider)[movieId];
+
+    if (recommendationsMovies == null && similarMovies == null) {
+      return const CircularProgressIndicator(
+        strokeWidth: 2,
+      );
+    }
+
+    return Column(
+      children: [
+        if (similarMovies != null)
+          MovieHorizontalListview(
+            movies: similarMovies,
+            title: 'Películas Similares',
+            loadNextPage: () {
+              ref.read(similarMoviesProvider.notifier).loadNextPage(movieId);
+            },
+          ),
+        if (recommendationsMovies != null)
+          MovieHorizontalListview(
+            movies: recommendationsMovies,
+            title: 'Nuestra selección',
+            loadNextPage: () {
+              ref
+                  .read(recommendationsMoviesProvider.notifier)
+                  .loadNextPage(movieId);
+            },
+          ),
+      ],
     );
   }
 }

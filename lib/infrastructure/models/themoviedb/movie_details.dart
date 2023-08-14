@@ -35,12 +35,12 @@ class MovieDetails {
     final List<Genre> genres;
     final String homepage;
     final int id;
-    final String imdbId;
+    final String? imdbId;
     final String originalLanguage;
     final String originalTitle;
     final String overview;
     final double popularity;
-    final String posterPath;
+    final String? posterPath;
     final List<ProductionCompany> productionCompanies;
     final List<ProductionCountry> productionCountries;
     final DateTime releaseDate;

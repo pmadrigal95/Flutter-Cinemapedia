@@ -20,8 +20,8 @@ class TheMovieDbDatasource extends MovieDatasource {
   List<Movie> _jsonToMovies(Map<String, dynamic> json) {
     return MovieDbResponse.fromJson(json)
         .results
-        .where((moviedb) => moviedb.posterPath != 'no-poster')
         .map((moviedb) => MovieMapper.movieDBToEntity(moviedb))
+        .where((moviedb) => moviedb.posterPath != 'no-poster')
         .toList();
   }
 
@@ -70,5 +70,22 @@ class TheMovieDbDatasource extends MovieDatasource {
     final Movie movie = MovieMapper.movieDetailsToEntity(movieDetails);
 
     return movie;
+  }
+
+  @override
+  Future<List<Movie>> getRecommendations(
+      {required String id, int page = 1}) async {
+    final response = await dio
+        .get('/movie/$id/recommendations', queryParameters: {'page': page});
+
+    return _jsonToMovies(response.data);
+  }
+
+  @override
+  Future<List<Movie>> getSimilar({required String id, int page = 1}) async {
+    final response =
+        await dio.get('/movie/$id/similar', queryParameters: {'page': page});
+
+    return _jsonToMovies(response.data);
   }
 }
