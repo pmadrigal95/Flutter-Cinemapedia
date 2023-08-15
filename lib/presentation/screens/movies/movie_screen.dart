@@ -321,19 +321,11 @@ class _MovieList extends ConsumerWidget {
           MovieHorizontalListview(
             movies: similarMovies,
             title: 'Películas Similares',
-            loadNextPage: () {
-              ref.read(similarMoviesProvider.notifier).loadNextPage(movieId);
-            },
           ),
         if (recommendationsMovies != null)
           MovieHorizontalListview(
             movies: recommendationsMovies,
             title: 'Nuestra selección',
-            loadNextPage: () {
-              ref
-                  .read(recommendationsMoviesProvider.notifier)
-                  .loadNextPage(movieId);
-            },
           ),
       ],
     );
