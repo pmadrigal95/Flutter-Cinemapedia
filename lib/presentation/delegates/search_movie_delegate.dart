@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +8,41 @@ import 'package:cinemapedia/config/domain/entities/movie.dart';
 typedef SearchMoviesCallback = Future<List<Movie>> Function(String query);
 
 class SearchMovieDelegate extends SearchDelegate<Movie?> {
+  List<Movie> initialMovies;
   final SearchMoviesCallback searchMovies;
 
-  SearchMovieDelegate({required this.searchMovies});
+  StreamController<List<Movie>> debouncedMovies = StreamController.broadcast();
+
+  StreamController<bool> isLoadingStream = StreamController.broadcast();
+
+  Timer? _debounceTimer;
+
+  SearchMovieDelegate(
+      {required this.searchMovies, required this.initialMovies});
+
+  void clearStreams() {
+    debouncedMovies.close();
+  }
+
+  void _onQueryChanged(String query) {
+    isLoadingStream.add(true);
+
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+
+    _debounceTimer = Timer(const Duration(microseconds: 500), () async {
+      // if (query.isEmpty) {
+      //   debouncedMovies.add([]);
+      //   return;
+      // }
+
+      final movies = await searchMovies(query);
+
+      initialMovies = movies;
+
+      debouncedMovies.add(movies);
+      isLoadingStream.add(false);
+    });
+  }
 
   @override
   String? get searchFieldLabel => 'Buscar Película';
@@ -16,40 +50,71 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
-      // if (query.isNotEmpty)
-      FadeIn(
-        animate: query.isNotEmpty,
-        // duration: const Duration(milliseconds: 200),
-        child: IconButton(
-            onPressed: () => query = '', icon: const Icon(Icons.clear_sharp)),
-      ),
+      StreamBuilder(
+          stream: isLoadingStream.stream,
+          initialData: false,
+          builder: (context, snapshot) {
+            // final bool isLoading = snapshot.data ?? false;
+
+            return snapshot.data ?? false
+                ? SpinPerfect(
+                    duration: const Duration(seconds: 20),
+                    spins: 10,
+                    infinite: true,
+                    child: IconButton(
+                        onPressed: () => {}, icon: const Icon(Icons.refresh)),
+                  )
+                : FadeIn(
+                    animate: query.isNotEmpty,
+                    // duration: const Duration(milliseconds: 200),
+                    child: IconButton(
+                        onPressed: () => query = '',
+                        icon: const Icon(Icons.clear_sharp)),
+                  );
+          })
     ];
   }
 
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
-        onPressed: () => close(context, null),
+        onPressed: () {
+          clearStreams();
+          close(context, null);
+        },
         icon: const Icon(Icons.arrow_back_ios_new_rounded));
   }
 
   @override
   Widget buildResults(BuildContext context) {
-    return const Text('buildResults');
+    return buildResultsAndSuggestions();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder(
-      future: searchMovies(query),
-      initialData: const [],
+    _onQueryChanged(query);
+
+    return buildResultsAndSuggestions();
+  }
+
+  Widget buildResultsAndSuggestions() {
+    return StreamBuilder(
+      // future: searchMovies(query),
+      stream: debouncedMovies.stream,
+      initialData: initialMovies,
       builder: (context, snapshot) {
+        //! Relizar la peticion
+
         final movies = snapshot.data ?? [];
 
         return ListView.builder(
           itemCount: movies.length,
           itemBuilder: (context, index) => _MovieSearchItem(
             movie: movies[index],
+            onMovieSelected: (context, movie) {
+              clearStreams();
+              close(context, movie);
+            },
           ),
         );
       },
@@ -59,7 +124,10 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
 
 class _MovieSearchItem extends StatelessWidget {
   final Movie movie;
-  const _MovieSearchItem({required this.movie});
+
+  final Function onMovieSelected;
+
+  const _MovieSearchItem({required this.movie, required this.onMovieSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +135,27 @@ class _MovieSearchItem extends StatelessWidget {
 
     final size = MediaQuery.of(context).size;
 
+    return GestureDetector(
+        onTap: () {
+          onMovieSelected(context, movie);
+        },
+        child: _DisplayMovie(size: size, movie: movie, textStyles: textStyles));
+  }
+}
+
+class _DisplayMovie extends StatelessWidget {
+  const _DisplayMovie({
+    required this.size,
+    required this.movie,
+    required this.textStyles,
+  });
+
+  final Size size;
+  final Movie movie;
+  final TextTheme textStyles;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Row(
