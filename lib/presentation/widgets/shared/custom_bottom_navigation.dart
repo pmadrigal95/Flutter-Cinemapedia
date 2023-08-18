@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// A custom bottom navigation bar widget.
 ///
 /// This widget represents a custom bottom navigation bar that can be used in a Flutter app.
 /// It consists of three navigation items: "Inicio" with a home icon, "Categorías" with a label icon, and "Favoritos" with a favorite icon.
 class CustomBottomNavigation extends StatelessWidget {
-  const CustomBottomNavigation({super.key});
+  final int currentIndex;
+
+  const CustomBottomNavigation({super.key, required this.currentIndex});
+
+  void onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home/0');
+        break;
+      case 1:
+        context.go('/home/1');
+        break;
+      case 2:
+        context.go('/home/2');
+        break;
+      default:
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +37,8 @@ class CustomBottomNavigation extends StatelessWidget {
     /// The third item has an icon of a favorite ([Icons.favorite_outline]) and a label of "Favoritos".
     return BottomNavigationBar(
       elevation: 0,
+      currentIndex: currentIndex,
+      onTap: (index) => onItemTapped(context, index),
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home_max),
