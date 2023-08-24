@@ -143,13 +143,15 @@ class _MovieDetails extends StatelessWidget {
   }
 }
 
-class _CustomSliverAppBar extends StatelessWidget {
+class _CustomSliverAppBar extends ConsumerWidget {
   final Movie movie;
 
   const _CustomSliverAppBar({required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue isFavoriteFuture = ref.watch(isFavoriteProvider(movie.id));
+
     final size = MediaQuery.of(context).size;
 
     return SliverAppBar(
@@ -158,9 +160,23 @@ class _CustomSliverAppBar extends StatelessWidget {
       foregroundColor: Colors.white,
       actions: [
         IconButton(
-            onPressed: () {}, 
-            icon: const Icon(Icons.favorite_border)
-          )
+            onPressed: () {
+              ref.watch(localStorageRepositoryProvider).toggleFavorite(movie);
+
+              ref.invalidate(isFavoriteProvider(movie.id));
+            },
+            icon: isFavoriteFuture.when(
+                data: (isFavorite) => isFavorite
+                    ? const Icon(
+                        Icons.favorite_rounded,
+                        color: Colors.red,
+                      )
+                    : const Icon(Icons.favorite_border),
+                error: (_, __) => throw UnimplementedError(),
+                loading: () => const CircularProgressIndicator(
+                      strokeWidth: 2,
+                    )))
+        // Icon(Icons.favorite_border))
       ],
       // shadowColor: Colors.red,
       flexibleSpace: FlexibleSpaceBar(
@@ -313,7 +329,8 @@ class _MovieList extends ConsumerWidget {
     final List<Movie>? recommendationsMovies =
         ref.watch(recommendationsMoviesProvider)[movieId];
 
-    final List<Movie>? similarMovies = ref.watch(similarMoviesProvider)[movieId];
+    final List<Movie>? similarMovies =
+        ref.watch(similarMoviesProvider)[movieId];
 
     if (recommendationsMovies == null && similarMovies == null) {
       return const CircularProgressIndicator(
