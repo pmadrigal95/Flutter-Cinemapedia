@@ -24,6 +24,6 @@ Welcome to the Cinemapedia App repository! This application allows you to search
 The app should now be running locally on your machine.
 
 ## Contact
-If you have any questions or suggestions, please feel free to contact us at pablomadrigal.1995@gmail.com.
+If you have any questions or suggestions, please feel free to contact me at pablomadrigal.1995@gmail.com.
 
 Happy movie watching!
