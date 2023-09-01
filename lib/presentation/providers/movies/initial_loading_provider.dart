@@ -3,15 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cinemapedia/presentation/providers/providers.dart';
 
 final initialLoadingProvider = Provider<bool>((ref) {
-  final nowPlaying = ref.watch(nowPlayingMoviesProvider).isEmpty;
 
-  final popular = ref.watch(popularMoviesProvider).isEmpty;
+  final step1 = ref.watch( nowPlayingMoviesProvider ).isEmpty;
+  final step2 = ref.watch( popularMoviesProvider ).isEmpty;
+  final step3 = ref.watch( topRatedMoviesProvider ).isEmpty;
+  final step4 = ref.watch( upComingMoviesProvider ).isEmpty;
 
-  final upComing = ref.watch(upComingMoviesProvider).isEmpty;
+  if( step1 || step2 || step3 || step4 ) return true;
 
-  final topRated = ref.watch(topRatedMoviesProvider).isEmpty;
-
-  if (nowPlaying || popular || upComing || topRated) return true;
-
-  return false; // Terminamos de cargar
+  return false; // terminamos de cargar
 });

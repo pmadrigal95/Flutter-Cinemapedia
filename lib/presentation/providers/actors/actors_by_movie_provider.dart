@@ -1,33 +1,41 @@
 
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cinemapedia/domain/entities/actor.dart';
+import 'package:cinemapedia/domain/entities/entities.dart';
 import 'package:cinemapedia/presentation/providers/actors/actors_repository_provider.dart';
 
-final actorsByMovieProvider =
-    StateNotifierProvider<ActorsByMovieNotifier, Map<String, List<Actor>>>((ref) {
-  final actorRepository = ref.watch(actorRepositoryProvider).getActorsByMovieId;
-
-  return ActorsByMovieNotifier(getActors: actorRepository);
+final actorsByMovieProvider = StateNotifierProvider<ActorsByMovieNotifier, Map<String, List<Actor>>>((ref) {
+  final actorsRepository = ref.watch( actorsRepositoryProvider );
+  
+  return ActorsByMovieNotifier( getActors: actorsRepository.getActorsByMovie );
 });
 
-typedef GetActorsCallback = Future<List<Actor>> Function(String movieId);
+/*
+  {
+    '505642': <Actor>[],
+    '505643': <Actor>[],
+    '505645': <Actor>[],
+    '501231': <Actor>[],
+  }
+*/
 
-///
-/// {
-///  '505642' : <Actor> []
-/// }
 
-class ActorsByMovieNotifier extends StateNotifier<Map<String, List<Actor>>> {
+typedef GetActorsCallback = Future<List<Actor>>Function(String movieId);
+
+class ActorsByMovieNotifier extends StateNotifier<Map<String,List<Actor>>> {
+
   final GetActorsCallback getActors;
 
-  ActorsByMovieNotifier({required this.getActors}) : super({});
+  ActorsByMovieNotifier({
+    required this.getActors,
+  }): super({});
 
-  Future<void> loadActors(String movieId) async {
-    if (state[movieId] != null) return;
 
-    final List<Actor> actors  = await getActors(movieId);
+  Future<void> loadActors( String movieId ) async {
+    if ( state[movieId] != null ) return;
 
-    state = {...state, movieId: actors};
+    final List<Actor> actors = await getActors( movieId );
+    state = { ...state, movieId: actors };
   }
+
 }
