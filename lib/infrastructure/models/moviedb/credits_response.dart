@@ -90,3 +90,4 @@ class Cast {
         "job": job,
     };
 }
+

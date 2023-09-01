@@ -1,14 +1,17 @@
-import 'package:cinemapedia/config/domain/datasources/actor_datasources.dart';
-import 'package:cinemapedia/config/domain/entities/actor.dart';
-import 'package:cinemapedia/config/domain/repositories/actor_repository.dart';
+import 'package:cinemapedia/domain/entities/entities.dart';
+import 'package:cinemapedia/domain/datasources/actors_datasource.dart';
+import 'package:cinemapedia/domain/repositories/actors_repository.dart';
 
-class ActorRepositoryImpl extends ActorRepository {
-  final ActorDatasource datasource;
+class ActorRepositoryImpl extends ActorsRepository {
 
+  final ActorsDatasource datasource;
   ActorRepositoryImpl(this.datasource);
 
+
   @override
-  Future<List<Actor>> getActorsByMovieId(String movieId) {
-    return datasource.getActorsByMovieId(movieId);
+  Future<List<Actor>> getActorsByMovie(String movieId){
+    return datasource.getActorsByMovie(movieId);
   }
+
+
 }
